@@ -6,6 +6,10 @@ app.use(express.json());
 
 const generateId = () => Math.floor(Math.random() * 100000000);
 
+const nameExists = (name) => {
+  return !persons.find((person) => person.name === name);
+};
+
 let persons = [
   {
     id: 1,
@@ -58,12 +62,21 @@ app.get("/info", (request, response) => {
 app.put("/api/persons", (request, response) => {
   const body = request.body;
 
-  if (!body.name || !body.number) {
+  if (!body.name) {
     return response.status(400).json({
-      error: "content missing",
+      error: "Name missing",
     });
   }
-
+  if (!body.number) {
+    return response.status(400).json({
+      error: "Number missing",
+    });
+  }
+  if (!nameExists(body.name)) {
+    return response.status(400).json({
+      error: "Name already exists",
+    });
+  }
   const id = generateId();
 
   const newPerson = {
