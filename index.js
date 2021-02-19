@@ -4,6 +4,8 @@ const app = express();
 
 app.use(express.json());
 
+const generateId = () => Math.floor(Math.random() * 100000000);
+
 let persons = [
   {
     id: 1,
@@ -51,6 +53,28 @@ app.get("/info", (request, response) => {
     `<p>Phonebook has info for ${persons.length}</p>
     <p>${Date()}</p>`
   );
+});
+
+app.put("/api/persons", (request, response) => {
+  const body = request.body;
+
+  if (!body.name || !body.number) {
+    return response.status(400).json({
+      error: "content missing",
+    });
+  }
+
+  const id = generateId();
+
+  const newPerson = {
+    id: id,
+    name: body.name,
+    number: body.number,
+  };
+
+  persons = persons.concat(newPerson);
+
+  response.json(newPerson);
 });
 
 app.delete("/api/persons/:id", (request, response) => {
