@@ -1,0 +1,6 @@
+# Get all
+GET http://localhost:3001/api/persons
+
+###
+# Get one
+GET http://localhost:3001/api/persons/3296733
