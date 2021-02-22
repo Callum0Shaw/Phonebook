@@ -66,7 +66,7 @@ app.get("/info", (request, response) => {
   );
 });
 
-app.put("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response) => {
   const body = request.body;
 
   if (!body.name) {
