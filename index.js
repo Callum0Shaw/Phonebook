@@ -28,14 +28,7 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
-
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Entry.findById(request.params.id).then((entry) => response.json(entry));
 });
 
 app.get("/info", (request, response) => {
@@ -47,33 +40,19 @@ app.get("/info", (request, response) => {
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
+  console.log("Body:", body);
+  if (body === undefined) {
+    return response.status(400).json({ error: "content missing" });
+  }
 
-  if (!body.name) {
-    return response.status(400).json({
-      error: "Name missing",
-    });
-  }
-  if (!body.number) {
-    return response.status(400).json({
-      error: "Number missing",
-    });
-  }
-  if (!nameExists(body.name)) {
-    return response.status(400).json({
-      error: "Name already exists",
-    });
-  }
-  const id = generateId();
-
-  const newPerson = {
-    id: id,
+  const newEntry = new Entry({
     name: body.name,
     number: body.number,
-  };
+  });
 
-  persons = persons.concat(newPerson);
-
-  response.json(newPerson);
+  newEntry.save().then((savedEntry) => {
+    response.json(savedEntry);
+  });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
