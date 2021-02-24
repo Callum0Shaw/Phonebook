@@ -1,8 +1,10 @@
+require("dotenv").config();
 const { request } = require("express");
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const app = express();
+const Entry = require("./models/phonebook");
 
 app.use(cors());
 app.use(express.json());
@@ -11,41 +13,18 @@ app.use(morgan(":method :url :status :response-time ms :body"));
 
 morgan.token("body", (req, res) => JSON.stringify(req.body));
 
-const generateId = () => Math.floor(Math.random() * 100000000);
-
 const nameExists = (name) => {
   return !persons.find((person) => person.name === name);
 };
-
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "04-1234567",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "04-2345678",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "04-3456789",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendick",
-    number: "04-7654321",
-  },
-];
 
 app.get("/", (request, response) => {
   response.send("<h2>Hello, World!<h2>");
 });
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Entry.find({}).then((entries) => {
+    response.json(entries);
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
@@ -104,7 +83,7 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(204).end();
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
