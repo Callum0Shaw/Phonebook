@@ -27,8 +27,16 @@ app.get("/api/persons", (request, response) => {
   });
 });
 
-app.get("/api/persons/:id", (request, response) => {
-  Entry.findById(request.params.id).then((entry) => response.json(entry));
+app.get("/api/persons/:id", (request, response, next) => {
+  Entry.findById(request.params.id)
+    .then((entry) => {
+      if (entry) {
+        response.json(entry);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
 app.get("/info", (request, response) => {
@@ -40,7 +48,6 @@ app.get("/info", (request, response) => {
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
-  console.log("Body:", body);
   if (body === undefined) {
     return response.status(400).json({ error: "content missing" });
   }
@@ -55,12 +62,46 @@ app.post("/api/persons", (request, response) => {
   });
 });
 
-app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
-  console.log(id);
-  response.status(204).end();
+app.put("/api/persons/:id", (request, response, next) => {
+  const body = request.body;
+  if (body === undefined) {
+    return response.status(400).json({ error: "content missing" });
+  }
+  const entry = {
+    name: body.name,
+    number: body.number,
+  };
+  Entry.findByIdAndUpdate(request.params.id, entry, { new: true })
+    .then((updatedEntry) => {
+      response.json(updatedEntry);
+    })
+    .catch((error) => next(error));
 });
+
+app.delete("/api/persons/:id", (request, response, next) => {
+  Entry.findByIdAndRemove(request.params.id)
+    .then((result) => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
+});
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "Unknown endpoint" });
+};
+
+app.use(unknownEndpoint);
+
+const unhandledError = (error, request, response, next) => {
+  console.log(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(404).send({ error: "Malformatted id" });
+  }
+  next(error);
+};
+
+app.use(unhandledError);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
