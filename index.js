@@ -13,10 +13,6 @@ app.use(morgan(":method :url :status :response-time ms :body"));
 
 morgan.token("body", (req, res) => JSON.stringify(req.body));
 
-const nameExists = (name) => {
-  return !persons.find((person) => person.name === name);
-};
-
 app.get("/", (request, response) => {
   response.send("<h2>Hello, World!<h2>");
 });
@@ -48,7 +44,7 @@ app.get("/info", (request, response) => {
   });
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const body = request.body;
   if (body === undefined) {
     return response.status(400).json({ error: "content missing" });
@@ -59,9 +55,12 @@ app.post("/api/persons", (request, response) => {
     number: body.number,
   });
 
-  newEntry.save().then((savedEntry) => {
-    response.json(savedEntry);
-  });
+  newEntry
+    .save()
+    .then((savedEntry) => {
+      response.json(savedEntry);
+    })
+    .catch((error) => next(error));
 });
 
 app.put("/api/persons/:id", (request, response, next) => {
@@ -99,6 +98,8 @@ const unhandledError = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(404).send({ error: "Malformatted id" });
+  } else if (error.name === "MongoError") {
+    return response.status(400).json({ error: error.message });
   }
   next(error);
 };
