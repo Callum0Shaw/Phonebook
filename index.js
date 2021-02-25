@@ -40,10 +40,12 @@ app.get("/api/persons/:id", (request, response, next) => {
 });
 
 app.get("/info", (request, response) => {
-  response.send(
-    `<p>Phonebook has info for ${persons.length}</p>
-    <p>${Date()}</p>`
-  );
+  Entry.find({}).then((result) => {
+    response.send(
+      `<p>Phonebook has info for ${result.length}</p>
+      <p>${Date()}</p>`
+    );
+  });
 });
 
 app.post("/api/persons", (request, response) => {
